@@ -19,11 +19,11 @@ public class Account {
 	private Timestamp createdAt;
 	
 	public void withdraw(Long amount) {
-		this.balance = balance;
+		this.balance -= amount;
 	}
 	
 	public void deposit(Long amount) {
-		this.balance = balance;
+		this.balance += amount;
 	}
 	
 	// 패스워드 체크
