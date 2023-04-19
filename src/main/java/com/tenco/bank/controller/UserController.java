@@ -100,7 +100,7 @@ public class UserController {
 		session.setAttribute(Define.PRINCIPAL, principal);
 		
 		// todo 변경 예정
-		return "/account/list";
+		return "redirect:/account/list";
 	}
 	
 	@GetMapping("/logout")
