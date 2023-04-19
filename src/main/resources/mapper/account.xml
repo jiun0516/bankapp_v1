@@ -24,6 +24,4 @@
 	<select id="findAll" resultType="com.tenco.bank.repository.model.Account">
 		select * from account_tb 
 	</select>
-	
-	
 </mapper>

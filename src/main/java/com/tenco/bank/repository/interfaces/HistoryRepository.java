@@ -7,7 +7,7 @@ import org.apache.ibatis.annotations.Mapper;
 import com.tenco.bank.repository.model.History;
 
 @Mapper // 반드시 지정하기!
-public interface HistoryRespository {
+public interface HistoryRepository {
 
 	public int insert(History history);
 	public int updateById(History history);
