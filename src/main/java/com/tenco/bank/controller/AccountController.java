@@ -7,6 +7,7 @@ import javax.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -14,9 +15,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 
 import com.tenco.bank.dto.DepositFormDto;
 import com.tenco.bank.dto.SaveFormDto;
+import com.tenco.bank.dto.TransferFormDto;
 import com.tenco.bank.dto.WithdrawFormDto;
 import com.tenco.bank.handler.exception.CustomRestfullException;
 import com.tenco.bank.handler.exception.UnAuthorizedException;
+import com.tenco.bank.repository.interfaces.AccountRepository;
 import com.tenco.bank.repository.model.Account;
 import com.tenco.bank.repository.model.User;
 import com.tenco.bank.service.AccountService;
@@ -139,8 +142,46 @@ public class AccountController {
 	// 이체 페이지
 	@GetMapping("/transfer")
 	public String transfer() {
-		
+		if(session.getAttribute(Define.PRINCIPAL) == null) {
+			throw new UnAuthorizedException("로그인 먼저 해주세요", HttpStatus.UNAUTHORIZED);
+		}
 		return "/account/transferForm";
+	}
+	
+	// 이체 기능 만들기
+	@PostMapping("/transfer-proc")
+	public String transferProc(TransferFormDto transferFormDto) {
+		
+		User principal = (User)session.getAttribute(Define.PRINCIPAL);
+		if(principal == null) {
+			throw new UnAuthorizedException("로그인 먼저 해주세요", HttpStatus.UNAUTHORIZED);
+		}
+		
+		// 1. 출금 계좌 번호 입력 여부
+		if(transferFormDto.getWAccountNumber() == null || transferFormDto.getWAccountNumber().isEmpty()) {
+			throw new CustomRestfullException("출금 계좌 번호를 입력 하세요", HttpStatus.BAD_REQUEST);
+		}
+		// 2. 입금 계좌 번호 입력 여부
+		if(transferFormDto.getDAccountNumber() == null || transferFormDto.getDAccountNumber().isEmpty()) {
+			throw new CustomRestfullException("입금 계좌 번호를 입력 하세요", HttpStatus.BAD_REQUEST);
+		}
+		// 3. 출금 계좌 비밀번호 입력 여부
+		if(transferFormDto.getWAccountPassword() == null || transferFormDto.getWAccountPassword().isEmpty()) {
+			throw new CustomRestfullException("출금 계좌 비밀번호를 입력 하세요", HttpStatus.BAD_REQUEST);
+		}
+		// 4. 이체 금액 0원 이상 확인
+		if(transferFormDto.getAmount() <= 0) {
+			throw new CustomRestfullException("이체 금액이 0원 이하일 수는 없습니다", HttpStatus.BAD_REQUEST);
+		}
+		// 5. 출금계좌 입금 계좌 번호 동일 여부 확인
+		if(transferFormDto.getWAccountNumber().equals(transferFormDto.getDAccountNumber())) {
+			throw new CustomRestfullException("출금계좌와 입금계좌는 동일 할 수 없습니다", HttpStatus.BAD_REQUEST);
+		}
+		
+		// 서비스 호출
+		accountService.updateAccountTransfer(transferFormDto, principal.getId());
+		
+		return "redirect:/account/list";
 	}
 	
 	// 계좌 생성 페이지
