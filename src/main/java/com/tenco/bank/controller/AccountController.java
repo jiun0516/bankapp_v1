@@ -7,19 +7,20 @@ import javax.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import com.tenco.bank.dto.DepositFormDto;
 import com.tenco.bank.dto.SaveFormDto;
 import com.tenco.bank.dto.TransferFormDto;
 import com.tenco.bank.dto.WithdrawFormDto;
+import com.tenco.bank.dto.response.HistoryDto;
 import com.tenco.bank.handler.exception.CustomRestfullException;
 import com.tenco.bank.handler.exception.UnAuthorizedException;
-import com.tenco.bank.repository.interfaces.AccountRepository;
 import com.tenco.bank.repository.model.Account;
 import com.tenco.bank.repository.model.User;
 import com.tenco.bank.service.AccountService;
@@ -229,9 +230,27 @@ public class AccountController {
 	}
 	
 	// 계좌 상세 보기 페이지
-	@GetMapping("/detail")
-	public String detail() {
+	@GetMapping("/detail/{id}")
+	public String detail(@PathVariable Integer id, @RequestParam(name = "type", defaultValue = "all", required = false) String type, Model model) {
+		User principal = (User)session.getAttribute(Define.PRINCIPAL);
+		if(session.getAttribute(Define.PRINCIPAL) == null) {
+			throw new UnAuthorizedException("로그인 먼저 해주세요", HttpStatus.UNAUTHORIZED);
+		}
+		System.out.println("type : " + type);
+		Account account = accountService.readAccount(id);
+		List<HistoryDto> historyList = accountService.readHistoryListByAccount(type, id);
 		
-		return "";
+		// 화면을 구성하기위해 필요한 데이터
+		// 소유자 이름
+		// 계좌 번호 (1개), 계좌 잔액
+		// 거래 내역 
+		System.out.println(account);
+		
+		model.addAttribute("account", account);
+		model.addAttribute("principal", principal);
+		model.addAttribute("historyList", historyList);
+		return "/account/detail";
 	}
+	
+	
 }
