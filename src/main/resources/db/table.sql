@@ -7,7 +7,7 @@ create table user_tb(
     created_at timestamp not null default now()
 );
 
--- 사용자에 계좌 정보 테이블 설계
+-- 사용자에 계좌 정보 테이블 설계x
 create table account_tb(
 	id int auto_increment primary key,
     number varchar(30) not null unique,

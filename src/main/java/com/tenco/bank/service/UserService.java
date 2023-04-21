@@ -2,6 +2,7 @@ package com.tenco.bank.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,10 +18,18 @@ public class UserService {
 	@Autowired // DI 처리 (객체 생성시 의존 주의 처리)
 	private UserRepository userRepository;
 	
-	@Transactional 
+	@Autowired // DI 처리 - webcofig에서 IoC 처리 함
+	private PasswordEncoder passwordEncoder;
+	
 	// 메서드 호출이 시작될 때 트랜잭션에 시작
 	// 메서드 종료시 트랜잭션 종료 (commit)
+	@Transactional 
 	public void createUser(SignUpFormDto signUpFormDto) {
+		
+		String rawPwd = signUpFormDto.getPassword();
+		String hashPwd = passwordEncoder.encode(rawPwd);
+		signUpFormDto.setPassword(hashPwd); // 객체 상태 변경
+		
 		// SignUpFormDto
 		// User
 		int result = userRepository.insert(signUpFormDto);
@@ -34,6 +43,7 @@ public class UserService {
 	 * @param signInFormDto
 	 * @return userEntity 응답
 	 */
+	@Transactional
 	public User signIn(SignInFormDto signInFormDto) {
 		
 		// todo
